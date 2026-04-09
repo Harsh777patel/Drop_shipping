@@ -1,0 +1,98 @@
+const express = require("express");
+const Product = require("../models/Product");
+const { authMiddleware, authorizeRoles } = require("../middleware/authMiddleware");
+
+const router = express.Router();
+
+// Get All Products
+router.get("/", async (req, res) => {
+    try {
+        const products = await Product.find().populate("supplier", "name email").populate("seller", "name email");
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+});
+
+// Get Distinct Products for specific dashboard Role
+router.get("/dashboard", authMiddleware, authorizeRoles("admin", "seller", "supplier"), async (req, res) => {
+    try {
+        let filter = {};
+        if (req.user.role === "supplier") filter = { supplier: req.user.id };
+        if (req.user.role === "seller") filter = { seller: req.user.id };
+
+        const products = await Product.find(filter);
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Create Product (Seller, Supplier, Admin)
+router.post("/", authMiddleware, authorizeRoles("admin", "seller", "supplier"), async (req, res) => {
+    try {
+        const { title, description, price, stock, category, imageUrl, supplier, seller } = req.body;
+
+        if (!title || !description || !price || !stock || !category) {
+            return res.status(400).json({ message: "Required fields missing" });
+        }
+
+        const newProduct = new Product({
+            title,
+            description,
+            price,
+            stock,
+            category,
+            imageUrl,
+            supplier: supplier || req.user.id, // default to self if not specified (for suppliers)
+            seller: seller || null,
+        });
+
+        await newProduct.save();
+        res.status(201).json({ message: "Product created successfully", product: newProduct });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+});
+
+// Update Product
+router.put("/:id", authMiddleware, authorizeRoles("admin", "seller", "supplier"), async (req, res) => {
+    try {
+        // Find if product exists
+        const product = await Product.findById(req.params.id);
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Must be the owner or admin to update
+        if (req.user.role !== "admin" && product.supplier.toString() !== req.user.id && product.seller?.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Not authorized to update this product" });
+        }
+
+        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.status(200).json({ message: "Product updated successfully", product: updatedProduct });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+});
+
+// Delete Product
+router.delete("/:id", authMiddleware, authorizeRoles("admin", "seller", "supplier"), async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        if (req.user.role !== "admin" && product.supplier.toString() !== req.user.id && product.seller?.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Not authorized to delete this product" });
+        }
+
+        await Product.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: "Product deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+});
+
+module.exports = router;
