@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   User, ShoppingBag, MapPin, Package, Clock, ShieldCheck,
-  LogOut, Star, Repeat, X, AlertTriangle, CheckCircle2, Lock
+  LogOut, Star, Repeat, X, AlertTriangle, CheckCircle2, Lock, ArrowLeft, Plus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
@@ -239,6 +239,117 @@ function OrderAddressModal({ order, onClose, onSaved }) {
   );
 }
 
+// ─── Return Request Modal ──────────────────────────────────────────────────
+function ReturnModal({ order, onClose, onSubmitted }) {
+  const [form, setForm] = useState({ reason: "", imageUrl: "" });
+  const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB Limit
+        toast.error("File is too large. Max 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm({ ...form, imageUrl: reader.result });
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!form.reason.trim()) {
+      toast.error("Please provide a reason for return");
+      return;
+    }
+    if (!form.imageUrl) {
+      toast.error("Please upload a photo of the product");
+      return;
+    }
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("dropsync_token");
+      await axios.post(
+        `http://localhost:5000/api/orders/${order._id}/return`,
+        form,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Return Request Submitted!");
+      onSubmitted();
+      onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to submit return");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div className="fixed inset-0 z-50 flex items-center justify-center px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <motion.div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+        <motion.div className="relative z-10 w-full max-w-lg glass border border-red-500/30 rounded-3xl overflow-hidden p-8 shadow-2xl" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-white flex items-center gap-2"><Repeat className="w-6 h-6 text-red-400" /> Return Request</h3>
+            <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition-colors text-slate-400"><X className="w-5 h-5" /></button>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Reason for Return</label>
+              <textarea 
+                value={form.reason}
+                onChange={e => setForm({ ...form, reason: e.target.value })}
+                className="input-base min-h-[100px]" 
+                placeholder="Why are you returning this? (e.g. Received wrong size, Item damaged during shipping...)" 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Upload Photo Proof</label>
+              <div className="relative group">
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden" 
+                  id="return-photo-upload"
+                />
+                <label 
+                  htmlFor="return-photo-upload"
+                  className="w-full flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-700 rounded-xl p-6 cursor-pointer group-hover:border-red-500/50 group-hover:bg-red-500/5 transition-all text-slate-400 group-hover:text-red-400"
+                >
+                  {preview ? (
+                    <img src={preview} alt="Upload Preview" className="w-full max-h-40 object-contain rounded-lg shadow-lg" />
+                  ) : (
+                    <>
+                       <div className="p-3 bg-slate-800 rounded-full group-hover:bg-red-500/20"><Plus className="w-6 h-6" /></div>
+                       <span className="text-sm font-bold">Choose a Photo</span>
+                       <span className="text-[10px] text-slate-500 uppercase tracking-widest">JPG, PNG strictly under 2MB</span>
+                    </>
+                  )}
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-3 mt-8">
+            <button onClick={onClose} className="flex-1 py-3 text-slate-400 hover:text-white font-bold transition-all">Cancel</button>
+            <button 
+              onClick={handleSubmit} 
+              disabled={loading}
+              className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
+            >
+              {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Submit Return"}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 export default function CustomerDashboard() {
   const router = useRouter();
@@ -253,6 +364,7 @@ export default function CustomerDashboard() {
 
   // Address modal state
   const [addressModalOrder, setAddressModalOrder] = useState(null);
+  const [returnModalOrder, setReturnModalOrder] = useState(null);
 
   // Track which orders have already had their address changed (one-time)
   const [changedOrders, setChangedOrders] = useState(new Set());
@@ -305,25 +417,18 @@ export default function CustomerDashboard() {
     setShowFeedback(true);
   };
 
-  const handleReturnOrder = async (orderId) => {
-    const reason = window.prompt("Reason for return (e.g. Damaged, Not as described):");
-    if (!reason) return;
+  const handleReturnOrder = (order) => {
+    setReturnModalOrder(order);
+  };
 
-    try {
+  const refreshOrders = async () => {
+     try {
       const token = localStorage.getItem("dropsync_token");
-      await axios.post(
-        `http://localhost:5000/api/orders/${orderId}/return`,
-        { reason },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success("Return Request Submitted!");
       const res = await axios.get("http://localhost:5000/api/orders/myorders", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(res.data);
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to request return");
-    }
+    } catch (_) {}
   };
 
   // Refresh orders after address is saved + lock that order
@@ -333,14 +438,7 @@ export default function CustomerDashboard() {
     updated.add(orderId);
     setChangedOrders(updated);
     localStorage.setItem("dropsync_addr_changed_orders", JSON.stringify([...updated]));
-
-    try {
-      const token = localStorage.getItem("dropsync_token");
-      const res = await axios.get("http://localhost:5000/api/orders/myorders", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setOrders(res.data);
-    } catch (_) {}
+    refreshOrders();
   };
 
   if (loading || !user) {
@@ -357,7 +455,7 @@ export default function CustomerDashboard() {
       <FeedbackPopup show={showFeedback} orderId={feedbackOrderId} onClose={() => setShowFeedback(false)} />
       <TrackingPopup show={!!trackingOrder} order={trackingOrder} onClose={() => setTrackingOrder(null)} />
 
-      {/* Address Change Modal */}
+      {/* Modals */}
       {addressModalOrder && (
         <OrderAddressModal
           order={addressModalOrder}
@@ -365,6 +463,30 @@ export default function CustomerDashboard() {
           onSaved={() => handleAddressSaved(addressModalOrder._id)}
         />
       )}
+      {returnModalOrder && (
+        <ReturnModal 
+          order={returnModalOrder}
+          onClose={() => setReturnModalOrder(null)}
+          onSubmitted={refreshOrders}
+        />
+      )}
+
+      {/* Top Header with Back Button */}
+      <div className="flex items-center justify-between mb-10">
+        <button 
+          onClick={() => router.push("/")}
+          className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-bold group"
+        >
+          <div className="p-2 bg-slate-800 rounded-xl group-hover:bg-slate-700 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </div>
+          Back to Shopping
+        </button>
+        <div className="text-right">
+           <h1 className="text-2xl font-black text-white">Member Center</h1>
+           <p className="text-slate-500 text-sm">Managing your digital wardrobe</p>
+        </div>
+      </div>
 
       {/* Background glow */}
       <div className="absolute top-[10%] right-[10%] w-[30%] h-[30%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none -z-10" />
@@ -569,7 +691,7 @@ export default function CustomerDashboard() {
 
                             {!order.returnRequest?.isRequested ? (
                               <button
-                                onClick={() => handleReturnOrder(order._id)}
+                                onClick={() => handleReturnOrder(order)}
                                 className="flex-1 px-2 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-sm font-medium rounded-xl transition-all border border-red-500/20 flex items-center justify-center gap-1"
                               >
                                 <Repeat className="w-4 h-4" /> Return

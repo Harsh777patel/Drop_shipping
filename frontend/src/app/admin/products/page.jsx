@@ -7,6 +7,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
+import { useSearchParams } from "next/navigation";
 
 const ProductSchema = Yup.object().shape({
   title: Yup.string().required("Title is required"),
@@ -18,6 +19,9 @@ const ProductSchema = Yup.object().shape({
 });
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
+  const filterSupplier = searchParams.get("supplier");
+  
   const [products, setProducts] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -26,12 +30,20 @@ export default function ProductsPage() {
   // Fetch Products
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [filterSupplier]);
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/products");
-      setProducts(res.data);
+      const token = localStorage.getItem("dropsync_token");
+      const res = await axios.get("http://localhost:5000/api/products/dashboard", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      let data = res.data;
+      if (filterSupplier) {
+        data = data.filter(p => p.supplier === filterSupplier || p.supplier?._id === filterSupplier);
+      }
+      setProducts(data);
     } catch (error) {
       toast.error("Failed to load products");
     } finally {
@@ -209,6 +221,7 @@ export default function ProductsPage() {
                 <th className="px-6 py-4 font-semibold">Category</th>
                 <th className="px-6 py-4 font-semibold">Price</th>
                 <th className="px-6 py-4 font-semibold">Stock</th>
+                <th className="px-6 py-4 font-semibold">Status</th>
                 <th className="px-6 py-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
@@ -236,6 +249,15 @@ export default function ProductsPage() {
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${product.stock > 10 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
                         {product.stock} in stock
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        product.status === "approved" || product.status === "active" ? "bg-green-500/20 text-green-400" :
+                        product.status === "rejected" ? "bg-red-500/20 text-red-400" :
+                        "bg-yellow-500/20 text-yellow-400"
+                      }`}>
+                        {product.status || "pending"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">

@@ -4,10 +4,10 @@ const { authMiddleware, authorizeRoles } = require("../middleware/authMiddleware
 
 const router = express.Router();
 
-// Get All Products
+// Get All Approved/Active Products (Public)
 router.get("/", async (req, res) => {
     try {
-        const products = await Product.find().populate("supplier", "name email").populate("seller", "name email");
+        const products = await Product.find({ status: { $in: ["approved", "active"] } }).populate("supplier", "name email").populate("seller", "name email");
         res.status(200).json(products);
     } catch (error) {
         res.status(500).json({ message: "Server Error", error: error.message });
@@ -19,7 +19,6 @@ router.get("/dashboard", authMiddleware, authorizeRoles("admin", "seller", "supp
     try {
         let filter = {};
         if (req.user.role === "supplier") filter = { supplier: req.user.id };
-        if (req.user.role === "seller") filter = { seller: req.user.id };
 
         const products = await Product.find(filter);
         res.status(200).json(products);
@@ -28,10 +27,10 @@ router.get("/dashboard", authMiddleware, authorizeRoles("admin", "seller", "supp
     }
 });
 
-// Create Product (Seller, Supplier, Admin)
-router.post("/", authMiddleware, authorizeRoles("admin", "seller", "supplier"), async (req, res) => {
+// Create Product (Supplier, Admin)
+router.post("/", authMiddleware, authorizeRoles("admin", "supplier"), async (req, res) => {
     try {
-        const { title, description, price, stock, category, imageUrl, supplier, seller } = req.body;
+        const { title, description, price, stock, category, imageUrl, supplier } = req.body;
 
         if (!title || !description || !price || !stock || !category) {
             return res.status(400).json({ message: "Required fields missing" });
@@ -45,7 +44,6 @@ router.post("/", authMiddleware, authorizeRoles("admin", "seller", "supplier"), 
             category,
             imageUrl,
             supplier: supplier || req.user.id, // default to self if not specified (for suppliers)
-            seller: seller || null,
         });
 
         await newProduct.save();
@@ -65,7 +63,7 @@ router.put("/:id", authMiddleware, authorizeRoles("admin", "seller", "supplier")
         }
 
         // Must be the owner or admin to update
-        if (req.user.role !== "admin" && product.supplier.toString() !== req.user.id && product.seller?.toString() !== req.user.id) {
+        if (req.user.role !== "admin" && product.supplier.toString() !== req.user.id) {
             return res.status(403).json({ message: "Not authorized to update this product" });
         }
 
@@ -84,7 +82,7 @@ router.delete("/:id", authMiddleware, authorizeRoles("admin", "seller", "supplie
             return res.status(404).json({ message: "Product not found" });
         }
 
-        if (req.user.role !== "admin" && product.supplier.toString() !== req.user.id && product.seller?.toString() !== req.user.id) {
+        if (req.user.role !== "admin" && product.supplier.toString() !== req.user.id) {
             return res.status(403).json({ message: "Not authorized to delete this product" });
         }
 
@@ -92,6 +90,38 @@ router.delete("/:id", authMiddleware, authorizeRoles("admin", "seller", "supplie
         res.status(200).json({ message: "Product deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Server Error", error: error.message });
+    }
+});
+
+// ADMIN ONLY: Get All Pending Products
+router.get("/admin/pending", authMiddleware, authorizeRoles("admin", "seller"), async (req, res) => {
+    try {
+        const products = await Product.find({ status: "pending" }).populate("supplier", "name email");
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// ADMIN ONLY: Approve Product
+router.put("/admin/approve/:id", authMiddleware, authorizeRoles("admin", "seller"), async (req, res) => {
+    try {
+        const product = await Product.findByIdAndUpdate(req.params.id, { status: "approved" }, { new: true });
+        if (!product) return res.status(404).json({ message: "Product not found" });
+        res.status(200).json({ message: "Product approved", product });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// ADMIN ONLY: Reject Product
+router.put("/admin/reject/:id", authMiddleware, authorizeRoles("admin", "seller"), async (req, res) => {
+    try {
+        const product = await Product.findByIdAndUpdate(req.params.id, { status: "rejected" }, { new: true });
+        if (!product) return res.status(404).json({ message: "Product not found" });
+        res.status(200).json({ message: "Product rejected", product });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
     }
 });
 

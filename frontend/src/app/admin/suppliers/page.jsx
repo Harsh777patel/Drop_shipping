@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../../components/AdminLayout";
-import { Users, Search, Star, MessageSquare } from "lucide-react";
+import { Users, Search, Star, MessageSquare, LayoutDashboard } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function SuppliersPage() {
+  const router = useRouter();
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -87,7 +89,14 @@ export default function SuppliersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
-                       <button className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"><MessageSquare className="w-4 h-4" /></button>
+                       <button className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors" title="Message Supplier"><MessageSquare className="w-4 h-4" /></button>
+                       <button 
+                         onClick={() => router.push(`/admin/products?supplier=${sup._id}`)}
+                         className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition-colors" 
+                         title="View Supplier Products"
+                       >
+                         <LayoutDashboard className="w-4 h-4" />
+                       </button>
                     </td>
                   </tr>
                 ))

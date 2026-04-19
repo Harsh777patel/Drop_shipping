@@ -16,7 +16,7 @@ const SignupSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email").required("Email is required"),
   password: Yup.string().min(6, "Must be at least 6 characters").required("Password is required"),
   phone: Yup.string().required("Phone is required"),
-  role: Yup.string().oneOf(['customer', 'seller', 'supplier'], 'Invalid Role').required('Role is required'),
+  role: Yup.string().oneOf(['customer', 'supplier'], 'Invalid Role').required('Role is required'),
 });
 
 export default function SignupPage() {
@@ -32,7 +32,7 @@ export default function SignupPage() {
       
       setTimeout(() => {
         const role = response.data.user.role;
-        if (role === 'admin' || role === 'seller' || role === 'supplier') {
+        if (role === 'admin' || role === 'supplier') {
           router.push('/admin/dashboard');
         } else {
           router.push('/dashboard');
@@ -89,8 +89,8 @@ export default function SignupPage() {
                   {/* Unified Role Selector */}
                   <div className="mb-6">
                     <label className="block text-sm font-semibold text-slate-300 mb-2">I want to join as <span className="text-red-500">*</span></label>
-                    <div className="grid grid-cols-3 gap-3">
-                      {['customer', 'seller', 'supplier'].map((r) => (
+                    <div className="grid grid-cols-2 gap-3">
+                      {['customer', 'supplier'].map((r) => (
                         <div 
                           key={r}
                           onClick={() => setFieldValue('role', r)}

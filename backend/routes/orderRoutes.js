@@ -112,17 +112,23 @@ router.put("/:id/address", authMiddleware, async (req, res) => {
 
 // @desc    Request Return (Module 11)
 router.post("/:id/return", authMiddleware, async (req, res) => {
-    const order = await Order.findById(req.params.id);
-    if (order && order.isDelivered) {
-        order.returnRequest = {
-            isRequested: true,
-            reason: req.body.reason,
-            status: "Pending"
-        };
-        const updatedOrder = await order.save();
-        res.json(updatedOrder);
-    } else {
-        res.status(400).json({ message: "Cannot request return at this stage" });
+    try {
+        const order = await Order.findById(req.params.id);
+        if (order && (order.isDelivered || order.status === "Delivered")) {
+            order.returnRequest = {
+                isRequested: true,
+                reason: req.body.reason,
+                imageUrl: req.body.imageUrl,
+                status: "Pending"
+            };
+            const updatedOrder = await order.save();
+            res.json(updatedOrder);
+        } else {
+            res.status(400).json({ message: "Order must be in 'Delivered' status to request a return." });
+        }
+    } catch (error) {
+        console.error("Return Request Error:", error);
+        res.status(500).json({ message: "Server Error during return submission", error: error.message });
     }
 });
 

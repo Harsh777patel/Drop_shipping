@@ -13,7 +13,7 @@ export default function Footer() {
             <span className="text-gradient">DropSync</span>
           </div>
           <p className="text-sm leading-relaxed max-w-xs">
-            The ultimate dropshipping ecosystem for customers, sellers, and suppliers. Build, scale, and deliver with zero inventory.
+            The ultimate dropshipping ecosystem for customers, administrators, and suppliers. Build, scale, and deliver with zero inventory.
           </p>
           <div className="flex items-center gap-4 mt-2">
             <a href="#" className="hover:text-blue-500 transition-colors"><Globe className="w-5 h-5" /></a>
@@ -50,13 +50,13 @@ export default function Footer() {
           <h3 className="text-white font-semibold mb-4 text-lg">Stay Updated</h3>
           <p className="text-sm mb-4">Subscribe to our newsletter for the latest products and updates.</p>
           <form className="flex">
-            <input 
-              type="email" 
-              placeholder="Enter your email" 
+            <input
+              type="email"
+              placeholder="Enter your email"
               className="bg-slate-800 border border-slate-700 rounded-l-lg px-4 py-2 w-full focus:outline-none focus:border-blue-500 text-white text-sm"
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-r-lg font-medium transition-colors"
             >
               Subscribe
@@ -64,7 +64,7 @@ export default function Footer() {
           </form>
         </div>
       </div>
-      
+
       <div className="max-w-7xl mx-auto border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between text-xs">
         <p>&copy; {new Date().getFullYear()} DropSync Platform. All rights reserved.</p>
         <div className="flex items-center gap-4 mt-4 md:mt-0">

@@ -3,10 +3,12 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../../components/AdminLayout";
 import { motion } from "framer-motion";
-import { Users, PackageOpen, LayoutDashboard, ShoppingBag, ArrowUpRight, ArrowDownRight, DollarSign, Repeat, PackageCheck, Star } from "lucide-react";
+import { Users, PackageOpen, LayoutDashboard, ShoppingBag, ArrowUpRight, ArrowDownRight, DollarSign, Repeat, PackageCheck, Star, ShieldCheck, ArrowLeft } from "lucide-react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalProducts: 0,
@@ -47,7 +49,8 @@ export default function DashboardPage() {
           totalUsers: usersRes.data.length || 0,
           totalProducts: productsRes.data.length || 0,
           totalSales: sales,
-          activeOrders: pending
+          activeOrders: pending,
+          pendingApprovals: (productsRes.data || []).filter(p => p.status === "pending").length
         });
         
         // Take last 5 orders for activity
@@ -64,10 +67,10 @@ export default function DashboardPage() {
   }, []);
 
   const cards = [
-    { title: "Total Users", value: stats.totalUsers, icon: <Users className="w-6 h-6 text-blue-500" />, trend: "+12%", up: true },
-    { title: "Active Products", value: stats.totalProducts, icon: <PackageOpen className="w-6 h-6 text-purple-500" />, trend: "+5%", up: true },
+    { title: "Total Users", value: stats.totalUsers, icon: <Users className="w-6 h-6 text-blue-500" />, trend: "+12%", up: true, href: "/admin/users" },
+    { title: "Active Products", value: stats.totalProducts, icon: <PackageOpen className="w-6 h-6 text-purple-500" />, trend: "+5%", up: true, href: "/admin/products" },
     { title: "Total Revenue", value: `$${stats.totalSales.toFixed(2)}`, icon: <DollarSign className="w-6 h-6 text-green-500" />, trend: "+24%", up: true },
-    { title: "Pending Orders", value: stats.activeOrders, icon: <ShoppingBag className="w-6 h-6 text-yellow-500" />, trend: "-2%", up: false },
+    { title: "Pending Approvals", value: stats.pendingApprovals, icon: <ShieldCheck className="w-6 h-6 text-orange-500" />, trend: "Action Required", up: false, href: "/admin/approvals" },
   ];
 
   if (loading) return <AdminLayout><div className="flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div></AdminLayout>;
@@ -75,6 +78,12 @@ export default function DashboardPage() {
   return (
     <AdminLayout>
       <div className="mb-8">
+        <button 
+          onClick={() => router.push("/")}
+          className="flex items-center gap-2 text-slate-400 hover:text-white mb-4 transition-colors text-sm font-medium group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Web Site
+        </button>
         <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
           <LayoutDashboard className="w-8 h-8 text-blue-500" /> Platform Overview
         </h1>
@@ -88,7 +97,8 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
-            className="glass p-6 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all flex flex-col justify-between"
+            onClick={() => card.href && router.push(card.href)}
+            className={`glass p-6 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all flex flex-col justify-between ${card.href ? 'cursor-pointer hover:bg-slate-800/40' : ''}`}
           >
             <div className="flex justify-between items-start mb-4">
               <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700">{card.icon}</div>

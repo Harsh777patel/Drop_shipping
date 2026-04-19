@@ -53,7 +53,7 @@ export default function Navbar() {
          const ustr = localStorage.getItem("dropsync_user");
          if (ustr) {
             const pUser = JSON.parse(ustr);
-            if (pUser.role === 'admin' || pUser.role === 'seller' || pUser.role === 'supplier') {
+            if (pUser.role === 'admin' || pUser.role === 'supplier') {
                 dashLink = `/${pUser.role}/dashboard`;
             }
          }

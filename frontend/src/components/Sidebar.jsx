@@ -29,12 +29,13 @@ export default function Sidebar() {
   if (!user) return null;
 
   const navLinks = [
-    { name: "Dashboard", href: `/${user.role}/dashboard`, icon: <LayoutDashboard className="w-5 h-5" />, roles: ["admin", "seller", "supplier"] },
-    { name: "Products", href: `/${user.role}/products`, icon: <Package className="w-5 h-5" />, roles: ["admin", "seller", "supplier"] },
+    { name: "Dashboard", href: `/${user.role}/dashboard`, icon: <LayoutDashboard className="w-5 h-5" />, roles: ["admin", "supplier"] },
+    { name: "Products", href: `/${user.role}/products`, icon: <Package className="w-5 h-5" />, roles: ["admin", "supplier"] },
     { name: "Users & Roles", href: `/${user.role}/users`, icon: <Users className="w-5 h-5" />, roles: ["admin"] },
-    { name: "Suppliers", href: `/${user.role}/suppliers`, icon: <Package className="w-5 h-5 text-indigo-400" />, roles: ["admin", "seller"] },
-    { name: "Orders", href: `/${user.role}/orders`, icon: <ShoppingCart className="w-5 h-5" />, roles: ["admin", "seller", "supplier"] },
-    { name: "Settings", href: `/${user.role}/settings`, icon: <Settings className="w-5 h-5" />, roles: ["admin", "seller", "supplier"] },
+    { name: "Suppliers", href: `/${user.role}/suppliers`, icon: <Package className="w-5 h-5 text-indigo-400" />, roles: ["admin"] },
+    { name: "Orders", href: `/${user.role}/orders`, icon: <ShoppingCart className="w-5 h-5" />, roles: ["admin", "supplier"] },
+    { name: "Product Approvals", href: `/${user.role}/approvals`, icon: <ShieldCheck className="w-5 h-5 text-green-400" />, roles: ["admin"] },
+    { name: "Settings", href: `/${user.role}/settings`, icon: <Settings className="w-5 h-5" />, roles: ["admin", "supplier"] },
   ];
 
   return (

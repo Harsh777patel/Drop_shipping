@@ -60,6 +60,7 @@ const orderSchema = new mongoose.Schema(
         returnRequest: { // Module 11: Return & Refund System
             isRequested: { type: Boolean, default: false },
             reason: { type: String },
+            imageUrl: { type: String }, // Proof of damage/issue
             status: { type: String, enum: ["None", "Pending", "Approved", "Rejected", "Refunded"], default: "None" }
         }
     },

@@ -3,10 +3,11 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import { Menu } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
@@ -19,13 +20,20 @@ export default function AdminLayout({ children }) {
     }
 
     const user = JSON.parse(storedUser);
+    
+    // Strict access control: /admin routes only for admins (and legacy sellers)
+    if (pathname.startsWith("/admin") && (user.role !== "admin" && user.role !== "seller")) {
+      router.push(`/${user.role}/dashboard`);
+      return;
+    }
+
     if (user.role === "customer") {
       router.push("/dashboard");
       return;
     }
 
     setIsAuthorized(true);
-  }, [router]);
+  }, [router, pathname]);
 
   if (!isAuthorized) {
     return (

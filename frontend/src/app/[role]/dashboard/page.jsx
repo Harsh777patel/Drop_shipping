@@ -3,10 +3,12 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../../components/AdminLayout";
 import { motion } from "framer-motion";
-import { Users, PackageOpen, LayoutDashboard, ShoppingBag, ArrowUpRight, ArrowDownRight, DollarSign, Repeat, PackageCheck, Star } from "lucide-react";
+import { Users, PackageOpen, LayoutDashboard, ShoppingBag, ArrowUpRight, ArrowDownRight, DollarSign, Repeat, PackageCheck, Star, ShieldCheck } from "lucide-react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalProducts: 0,
@@ -21,11 +23,13 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        const storedUser = localStorage.getItem("dropsync_user");
+        const user = JSON.parse(storedUser);
         const token = localStorage.getItem("dropsync_token");
         const headers = { Authorization: `Bearer ${token}` };
         
         const [usersRes, productsRes, ordersRes, reviewsRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/users/all", { headers }).catch(() => ({ data: [] })),
+          user.role === 'admin' ? axios.get("http://localhost:5000/api/users/all", { headers }).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
           axios.get("http://localhost:5000/api/products/dashboard", { headers }).catch(() => ({ data: [] })),
           axios.get("http://localhost:5000/api/orders", { headers }).catch(() => ({ data: [] })),
           axios.get("http://localhost:5000/api/reviews/dashboard-reviews", { headers }).catch(() => ({ data: [] }))
@@ -43,11 +47,14 @@ export default function DashboardPage() {
            if(["Pending", "Forwarded", "Dispatched", "Out for Delivery"].includes(o.status)) pending++;
         });
 
+        const isSupplier = user.role === 'supplier';
+
         setStats({
           totalUsers: usersRes.data.length || 0,
           totalProducts: productsRes.data.length || 0,
           totalSales: sales,
-          activeOrders: pending
+          activeOrders: pending,
+          pendingApprovals: isSupplier ? (productsRes.data || []).filter(p => p.status === "pending").length : 0
         });
         
         // Take last 5 orders for activity
@@ -63,12 +70,28 @@ export default function DashboardPage() {
     fetchStats();
   }, []);
 
-  const cards = [
-    { title: "Total Users", value: stats.totalUsers, icon: <Users className="w-6 h-6 text-blue-500" />, trend: "+12%", up: true },
-    { title: "Active Products", value: stats.totalProducts, icon: <PackageOpen className="w-6 h-6 text-purple-500" />, trend: "+5%", up: true },
-    { title: "Total Revenue", value: `$${stats.totalSales.toFixed(2)}`, icon: <DollarSign className="w-6 h-6 text-green-500" />, trend: "+24%", up: true },
-    { title: "Pending Orders", value: stats.activeOrders, icon: <ShoppingBag className="w-6 h-6 text-yellow-500" />, trend: "-2%", up: false },
-  ];
+  const getCards = () => {
+    const storedUser = typeof window !== 'undefined' ? localStorage.getItem("dropsync_user") : null;
+    const userRole = storedUser ? JSON.parse(storedUser).role : 'customer';
+
+    if (userRole === 'admin') {
+        return [
+            { title: "Total Users", value: stats.totalUsers, icon: <Users className="w-6 h-6 text-blue-500" />, trend: "+12%", up: true, href: "/admin/users" },
+            { title: "Active Products", value: stats.totalProducts, icon: <PackageOpen className="w-6 h-6 text-purple-500" />, trend: "+5%", up: true, href: "/admin/products" },
+            { title: "Total Revenue", value: `$${stats.totalSales.toFixed(2)}`, icon: <DollarSign className="w-6 h-6 text-green-500" />, trend: "+24%", up: true },
+            { title: "Pending Approvals", value: stats.pendingApprovals, icon: <ShoppingBag className="w-6 h-6 text-yellow-500" />, trend: "Review", up: false, href: "/admin/approvals" },
+        ];
+    } else {
+        return [
+            { title: "My Products", value: stats.totalProducts, icon: <PackageOpen className="w-6 h-6 text-indigo-500" />, trend: "Active", up: true, href: "/supplier/products" },
+            { title: "My Sales", value: `$${stats.totalSales.toFixed(2)}`, icon: <DollarSign className="w-6 h-6 text-emerald-500" />, trend: "Income", up: true },
+            { title: "Active Orders", value: stats.activeOrders, icon: <ShoppingBag className="w-6 h-6 text-orange-500" />, trend: "To Ship", up: false, href: "/supplier/orders" },
+            { title: "Pending Items", value: stats.pendingApprovals, icon: <Repeat className="w-6 h-6 text-amber-500" />, trend: "Wait Admin", up: false },
+        ];
+    }
+  };
+
+  const cards = getCards();
 
   if (loading) return <AdminLayout><div className="flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div></AdminLayout>;
 
@@ -89,7 +112,8 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
-            className="glass p-6 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all flex flex-col justify-between"
+            onClick={() => card.href && router.push(card.href)}
+            className={`glass p-6 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all flex flex-col justify-between ${card.href ? 'cursor-pointer hover:bg-slate-800/40' : ''}`}
           >
             <div className="flex justify-between items-start mb-4">
               <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700">{card.icon}</div>
