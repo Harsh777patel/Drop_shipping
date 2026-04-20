@@ -69,7 +69,7 @@ export default function DashboardPage() {
   const cards = [
     { title: "Total Users", value: stats.totalUsers, icon: <Users className="w-6 h-6 text-blue-500" />, trend: "+12%", up: true, href: "/admin/users" },
     { title: "Active Products", value: stats.totalProducts, icon: <PackageOpen className="w-6 h-6 text-purple-500" />, trend: "+5%", up: true, href: "/admin/products" },
-    { title: "Total Revenue", value: `$${stats.totalSales.toFixed(2)}`, icon: <DollarSign className="w-6 h-6 text-green-500" />, trend: "+24%", up: true },
+    { title: "Total Revenue", value: `₹${stats.totalSales.toFixed(2)}`, icon: <DollarSign className="w-6 h-6 text-green-500" />, trend: "+24%", up: true },
     { title: "Pending Approvals", value: stats.pendingApprovals, icon: <ShieldCheck className="w-6 h-6 text-orange-500" />, trend: "Action Required", up: false, href: "/admin/approvals" },
   ];
 
@@ -87,7 +87,7 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
           <LayoutDashboard className="w-8 h-8 text-blue-500" /> Platform Overview
         </h1>
-        <p className="text-slate-400">Welcome to your DropSync centralized command center.</p>
+        <p className="text-slate-400">Welcome to your Vastra culture centralized command center.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
@@ -173,7 +173,7 @@ export default function DashboardPage() {
                        {order.user?.name || "Customer"} placed an order
                     </p>
                     <p className="text-xs text-slate-400 mt-1 line-clamp-1">
-                       Status: <span className="font-medium text-slate-300">{order.status}</span> • {order.orderItems?.length} items • <span className="text-green-400">${order.totalPrice.toFixed(2)}</span>
+                       Status: <span className="font-medium text-slate-300">{order.status}</span> • {order.orderItems?.length} items • <span className="text-green-400">₹{order.totalPrice.toFixed(2)}</span>
                     </p>
                     <p className="text-[10px] text-slate-500 mt-2 uppercase tracking-wide">
                        {new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString()}

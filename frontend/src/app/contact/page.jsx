@@ -22,7 +22,7 @@ export default function ContactPage() {
             </div>
             <div>
               <p className="text-white font-bold text-lg">Chat with us</p>
-              <p className="text-slate-500 text-sm">support@dropsync.hq</p>
+              <p className="text-slate-500 text-sm">support@vastraculture.hq</p>
             </div>
           </div>
           <div className="flex items-center gap-4 group">

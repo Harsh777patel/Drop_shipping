@@ -26,7 +26,7 @@ export default function LoginPage() {
         password: values.password
       });
 
-      toast.success("Welcome back to DropSync!", { duration: 3000 });
+      toast.success("Welcome back to Vastra culture!", { duration: 3000 });
       
       localStorage.setItem("dropsync_token", response.data.token);
       localStorage.setItem("dropsync_user", JSON.stringify(response.data.user));
@@ -64,7 +64,7 @@ export default function LoginPage() {
                Your Gateway to <br/> <span className="text-gradient">Zero-Risk Commerce</span>
             </h1>
             <p className="text-slate-400 text-lg leading-relaxed">
-               DropSync is not just a marketplace. It's an entire ecosystem of verified suppliers, ambitious sellers, and seamless local logistics.
+               Vastra culture is not just a marketplace. It's an entire ecosystem of verified suppliers, ambitious sellers, and seamless local logistics.
             </p>
          </motion.div>
          
@@ -80,7 +80,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
             <h2 className="text-3xl font-black text-white mb-2">Welcome Back</h2>
-            <p className="text-slate-400 mb-8">Login to your DropSync account to continue.</p>
+            <p className="text-slate-400 mb-8">Login to your Vastra culture account to continue.</p>
 
             <Formik
               initialValues={{ email: "", password: "" }}
@@ -131,7 +131,7 @@ export default function LoginPage() {
                     disabled={isSubmitting}
                     className="w-full mt-6 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 group active:scale-[0.98]"
                   >
-                    {isSubmitting ? "Authenticating..." : "Sign In to DropSync"}
+                    {isSubmitting ? "Authenticating..." : "Sign In to Vastra culture"}
                     {!isSubmitting && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
                   </button>
                   

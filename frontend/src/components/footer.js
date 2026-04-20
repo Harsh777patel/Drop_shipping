@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2 text-2xl font-bold text-foreground group">
             <Shield className="text-blue-500 w-8 h-8 group-hover:rotate-12 transition-transform" />
-            <span className="text-gradient">DropSync</span>
+            <span className="text-gradient">Vastra culture</span>
           </div>
           <p className="text-sm leading-relaxed max-w-xs">
             The ultimate dropshipping ecosystem for customers, administrators, and suppliers. Build, scale, and deliver with zero inventory.
@@ -66,7 +66,7 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between text-xs">
-        <p>&copy; {new Date().getFullYear()} DropSync Platform. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Vastra culture Platform. All rights reserved.</p>
         <div className="flex items-center gap-4 mt-4 md:mt-0">
           <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
           <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>

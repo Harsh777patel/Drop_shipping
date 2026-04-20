@@ -102,7 +102,7 @@ export default function ApprovalsPage() {
                     <h2 className="text-xl font-bold text-white mt-1">{product.title}</h2>
                   </div>
                   <div className="text-right text-green-400 font-black text-2xl">
-                    ${product.price.toFixed(2)}
+                    ₹{product.price.toFixed(2)}
                   </div>
                 </div>
                 

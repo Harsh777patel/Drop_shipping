@@ -76,7 +76,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md py-10">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
             <h2 className="text-3xl font-black text-white mb-2">Create Account</h2>
-            <p className="text-slate-400 mb-8">Join the DropSync network and explore zero-inventory commerce.</p>
+            <p className="text-slate-400 mb-8">Join the Vastra culture network and explore zero-inventory commerce.</p>
 
             <Formik
               initialValues={{ name: "", email: "", password: "", phone: "", role: "customer" }}

@@ -10,6 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
+import { useCart } from "@/context/CartContext";
 
 // ─── Address Change Modal ───────────────────────────────────────────────────
 function AddressModal({ onClose, onSave, currentAddress }) {
@@ -264,7 +265,7 @@ function CartItemCard({ item, onRemove, onQtyChange }) {
           </div>
 
           {/* Price */}
-          <p className="text-green-400 font-black text-lg">${(item.price * item.qty).toFixed(2)}</p>
+          <p className="text-green-400 font-black text-lg">₹{(item.price * item.qty).toFixed(2)}</p>
         </div>
       </div>
 
@@ -282,7 +283,7 @@ function CartItemCard({ item, onRemove, onQtyChange }) {
 // ─── Main Cart Page ─────────────────────────────────────────────────────────
 export default function CartPage() {
   const router = useRouter();
-  const [cart, setCart] = useState([]);
+  const { cart, removeFromCart, updateQuantity } = useCart();
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [addressChanged, setAddressChanged] = useState(false);
   const [savedAddress, setSavedAddress] = useState(null);
@@ -290,32 +291,25 @@ export default function CartPage() {
 
   useEffect(() => {
     setMounted(true);
-    const stored = JSON.parse(localStorage.getItem("dropsync_cart") || "[]");
-    setCart(stored);
     const changed = localStorage.getItem("dropsync_address_changed") === "true";
     setAddressChanged(changed);
     const addr = localStorage.getItem("dropsync_saved_address");
     if (addr) setSavedAddress(JSON.parse(addr));
   }, []);
 
-  const syncCart = useCallback((updated) => {
-    setCart(updated);
-    localStorage.setItem("dropsync_cart", JSON.stringify(updated));
-  }, []);
-
   const handleRemove = (id) => {
-    syncCart(cart.filter(item => item._id !== id));
+    removeFromCart(id);
     toast.success("Item removed from cart");
   };
 
   const handleQtyChange = (id, newQty) => {
     if (newQty < 1) return;
-    const item = cart.find(i => i._id === id);
+    const item = cart.find(i => i.id === id);
     if (item && newQty > item.stock) {
       toast.error(`Only ${item.stock} units available`);
       return;
     }
-    syncCart(cart.map(i => i._id === id ? { ...i, qty: newQty } : i));
+    updateQuantity(id, newQty);
   };
 
   const handleAddressSave = (addr) => {
@@ -541,7 +535,7 @@ export default function CartPage() {
               <div className="space-y-2.5 mb-5 pb-5 border-b border-slate-800 text-sm">
                 <div className="flex justify-between text-slate-400">
                   <span>Subtotal ({cart.reduce((s, i) => s + i.qty, 0)} items)</span>
-                  <span className="text-white font-semibold">${subtotal.toFixed(2)}</span>
+                  <span className="text-white font-semibold">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-slate-400">
                   <span>Shipping</span>
@@ -557,7 +551,7 @@ export default function CartPage() {
               <div className="flex justify-between items-center mb-6">
                 <span className="text-white font-bold text-lg">Total</span>
                 <div className="text-right">
-                  <span className="text-2xl font-black text-white">${total.toFixed(2)}</span>
+                  <span className="text-2xl font-black text-white">₹{total.toFixed(2)}</span>
                   <p className="text-xs text-slate-500">All taxes included</p>
                 </div>
               </div>
@@ -567,7 +561,7 @@ export default function CartPage() {
                 <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-xl p-3 mb-5">
                   <Tag className="w-4 h-4 text-green-400 flex-shrink-0" />
                   <p className="text-green-400 text-xs font-semibold">
-                    You save ${(subtotal * 0.23).toFixed(2)} compared to retail price!
+                    You save ₹{(subtotal * 0.23).toFixed(2)} compared to retail price!
                   </p>
                 </div>
               )}

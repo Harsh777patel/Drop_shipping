@@ -43,7 +43,7 @@ export default function Sidebar() {
       <div className="p-6">
         <div className="flex items-center gap-2 text-2xl font-bold text-foreground cursor-pointer" onClick={() => router.push("/")}>
           <ShieldCheck className="text-blue-500 w-8 h-8" />
-          <span className="text-gradient">DropSync</span>
+          <span className="text-gradient">Vastra culture</span>
         </div>
         <p className="text-xs text-slate-500 mt-2 uppercase tracking-wider font-semibold">
           {user.role} Panel

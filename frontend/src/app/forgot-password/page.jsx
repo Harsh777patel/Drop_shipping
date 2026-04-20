@@ -92,7 +92,7 @@ export default function ForgotPasswordPage() {
                Secure Account <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Recovery</span>
             </h1>
             <p className="text-slate-400 text-lg leading-relaxed">
-               DropSync implements high-end OTP verification protocols strictly tied to your authenticated registry, keeping supply chains absolutely impenetrable.
+               Vastra culture implements high-end OTP verification protocols strictly tied to your authenticated registry, keeping supply chains absolutely impenetrable.
             </p>
          </motion.div>
       </div>

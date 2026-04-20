@@ -98,7 +98,7 @@ function CheckoutContent({ params }) {
           key: "rzp_test_dummykey12345", 
           amount: orderRes.data.amount,
           currency: "INR",
-          name: "DropSync Marketplace",
+          name: "Vastra culture Marketplace",
           description: `Secure purchase of ${product.title}`,
           order_id: orderRes.data.id, 
           handler: async function (response) {
@@ -235,16 +235,16 @@ function CheckoutContent({ params }) {
               <div className="flex-1">
                 <p className="font-bold text-white line-clamp-1">{product.title}</p>
                 <p className="text-sm text-slate-400">Qty: {qty}</p>
-                <p className="font-bold text-green-400">${product.price.toFixed(2)}</p>
+                <p className="font-bold text-green-400">₹{product.price.toFixed(2)}</p>
               </div>
             </div>
 
             <div className="space-y-3 mb-6 pb-6 border-b border-slate-800 text-sm">
-              <div className="flex justify-between text-slate-300"><span>Subtotal</span><span>${(product.price * qty).toFixed(2)}</span></div>
+              <div className="flex justify-between text-slate-300"><span>Subtotal</span><span>₹{(product.price * qty).toFixed(2)}</span></div>
               <div className="flex justify-between text-slate-300"><span>Shipping</span><span className="text-green-400">Free</span></div>
               <div className="flex justify-between font-bold text-lg text-white pt-2 border-t border-slate-800 mt-2">
                 <span>Total</span>
-                <span className="text-green-400">${(product.price * qty).toFixed(2)}</span>
+                <span className="text-green-400">₹{(product.price * qty).toFixed(2)}</span>
               </div>
             </div>
 
@@ -253,7 +253,7 @@ function CheckoutContent({ params }) {
               disabled={isProcessing}
               className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {isProcessing ? "Processing..." : `Complete Order ($${(product.price * qty).toFixed(2)})`}
+              {isProcessing ? "Processing..." : `Complete Order (₹${(product.price * qty).toFixed(2)})`}
             </button>
           </div>
         </div>

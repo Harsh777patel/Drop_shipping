@@ -41,7 +41,7 @@ export default function TrackingPopup({ show, order, onClose }) {
                                 <div className={`font-bold text-sm ${isCurrent ? 'text-blue-400' : isCompleted ? 'text-white' : 'text-slate-500'}`}>{s}</div>
                              </div>
                              <div className={`text-xs ${isCurrent ? 'text-slate-300' : 'text-slate-500'}`}>
-                                {s === "Pending" && "Order accepted by Dropsync."}
+                                {s === "Pending" && "Order accepted by Vastra culture."}
                                 {s === "Processing" && "Seller is preparing your item."}
                                 {s === "Forwarded" && "Automatically forwarded to trusted supplier."}
                                 {s === "Dispatched" && "Item picked up by courier partner."}

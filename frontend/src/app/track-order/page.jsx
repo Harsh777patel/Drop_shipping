@@ -19,7 +19,7 @@ export default function TrackOrderPage() {
       
       <div className="max-w-2xl w-full text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Track Your <span className="text-gradient">Package</span></h1>
-        <p className="text-slate-400">Enter your order ID below to see real-time updates on your Dropsync delivery.</p>
+        <p className="text-slate-400">Enter your order ID below to see real-time updates on your Vastra culture delivery.</p>
       </div>
 
       <div className="w-full max-w-2xl glass p-2 rounded-2xl border border-slate-700/50 flex items-center mb-16">

@@ -53,7 +53,7 @@ export default function AdminLayout({ children }) {
         {/* Mobile Header (Only visible on small screens) */}
         <header className="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 sticky top-0 z-20">
           <div className="flex items-center gap-2 font-bold text-lg">
-            <span className="text-gradient">DropSync</span>
+            <span className="text-gradient">Vastra culture</span>
           </div>
           <button className="text-slate-400 hover:text-white">
             <Menu className="w-6 h-6" />

@@ -17,7 +17,7 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState(10000); // Active slider value
-  const [categories, setCategories] = useState(["All"]);
+  const [categories, setCategories] = useState(["All", "Men", "Women", "Accessories"]);
   const [maxPriceDefault, setMaxPriceDefault] = useState(10000); // Dynamic max slider range limit
 
   useEffect(() => {
@@ -27,8 +27,9 @@ export default function ProductsPage() {
         setProducts(res.data);
         setFilteredProducts(res.data);
 
-        // Dynamically get all real categories that exist in DB
-        const uniqueCats = ["All", ...new Set(res.data.map(p => p.category).filter(Boolean))];
+        // Keep default categories and add any additional ones from DB
+        const defaultCategories = ["All", "Men", "Women", "Accessories"];
+        const uniqueCats = [...defaultCategories, ...new Set(res.data.map(p => p.category).filter(Boolean).filter(cat => !defaultCategories.includes(cat)))];
         setCategories(uniqueCats);
 
         // Dynamically adjust price slider to comfortably fit the highest priced item
@@ -56,7 +57,9 @@ export default function ProductsPage() {
     }
 
     if (selectedCategory !== "All") {
-      result = result.filter(p => p.category === selectedCategory);
+      result = result.filter(p => 
+        p.category && p.category.toLowerCase() === selectedCategory.toLowerCase()
+      );
     }
 
     result = result.filter(p => p.price <= priceRange);
@@ -121,7 +124,7 @@ export default function ProductsPage() {
             <div className="mb-6">
               <label className="block text-sm font-medium text-slate-300 mb-2 flex justify-between">
                 <span>Max Price</span>
-                <span className="text-blue-400 font-bold">${priceRange}</span>
+                <span className="text-blue-400 font-bold">₹{priceRange}</span>
               </label>
               <input
                 type="range"
@@ -184,8 +187,8 @@ export default function ProductsPage() {
 
                     <div className="flex items-center justify-between mt-auto pt-4">
                       <div>
-                        <span className="text-slate-500 text-xs line-through block"> ${(product.price * 1.2).toFixed(2)}</span>
-                        <span className="text-green-400 font-black text-xl">${product.price.toFixed(2)}</span>
+                        <span className="text-slate-500 text-xs line-through block"> ₹{(product.price * 1.2).toFixed(2)}</span>
+                        <span className="text-green-400 font-black text-xl">₹{product.price.toFixed(2)}</span>
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); router.push(`/checkout/${product._id}?qty=1`); }}

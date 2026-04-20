@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../../components/AdminLayout";
 import { motion } from "framer-motion";
-import { Users, PackageOpen, LayoutDashboard, ShoppingBag, ArrowUpRight, ArrowDownRight, DollarSign, Repeat, PackageCheck, Star, ShieldCheck } from "lucide-react";
+import { Users, PackageOpen, LayoutDashboard, ShoppingBag, ArrowUpRight, ArrowDownRight, DollarSign, Repeat, PackageCheck, Star, ShieldCheck, Plus, Trash2, Edit, Clock, CheckCircle, Info } from "lucide-react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
@@ -19,6 +19,8 @@ export default function DashboardPage() {
   const [recentOrders, setRecentOrders] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [supplierProducts, setSupplierProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -61,6 +63,16 @@ export default function DashboardPage() {
         setRecentOrders(orders.slice(-5).reverse());
         setReviews(reviewsRes.data || []);
 
+        // For suppliers, separately fetch products to display them
+        if (isSupplier) {
+          try {
+            const productsRes = await axios.get("http://localhost:5000/api/products/dashboard", { headers });
+            setSupplierProducts(productsRes.data || []);
+          } catch (err) {
+            console.error("Error fetching supplier products:", err);
+          }
+        }
+
       } catch (error) {
         console.error("Dashboard fetch error:", error);
       } finally {
@@ -78,13 +90,13 @@ export default function DashboardPage() {
         return [
             { title: "Total Users", value: stats.totalUsers, icon: <Users className="w-6 h-6 text-blue-500" />, trend: "+12%", up: true, href: "/admin/users" },
             { title: "Active Products", value: stats.totalProducts, icon: <PackageOpen className="w-6 h-6 text-purple-500" />, trend: "+5%", up: true, href: "/admin/products" },
-            { title: "Total Revenue", value: `$${stats.totalSales.toFixed(2)}`, icon: <DollarSign className="w-6 h-6 text-green-500" />, trend: "+24%", up: true },
+            { title: "Total Revenue", value: `₹${stats.totalSales.toFixed(2)}`, icon: <DollarSign className="w-6 h-6 text-green-500" />, trend: "+24%", up: true },
             { title: "Pending Approvals", value: stats.pendingApprovals, icon: <ShoppingBag className="w-6 h-6 text-yellow-500" />, trend: "Review", up: false, href: "/admin/approvals" },
         ];
     } else {
         return [
             { title: "My Products", value: stats.totalProducts, icon: <PackageOpen className="w-6 h-6 text-indigo-500" />, trend: "Active", up: true, href: "/supplier/products" },
-            { title: "My Sales", value: `$${stats.totalSales.toFixed(2)}`, icon: <DollarSign className="w-6 h-6 text-emerald-500" />, trend: "Income", up: true },
+            { title: "My Sales", value: `₹${stats.totalSales.toFixed(2)}`, icon: <DollarSign className="w-6 h-6 text-emerald-500" />, trend: "Income", up: true },
             { title: "Active Orders", value: stats.activeOrders, icon: <ShoppingBag className="w-6 h-6 text-orange-500" />, trend: "To Ship", up: false, href: "/supplier/orders" },
             { title: "Pending Items", value: stats.pendingApprovals, icon: <Repeat className="w-6 h-6 text-amber-500" />, trend: "Wait Admin", up: false },
         ];
@@ -102,7 +114,7 @@ export default function DashboardPage() {
           <LayoutDashboard className="w-8 h-8 text-blue-500" /> 
           {typeof window !== 'undefined' && localStorage.getItem('dropsync_user') ? `${JSON.parse(localStorage.getItem('dropsync_user')).role} Dashboard` : "Platform Overview"}
         </h1>
-        <p className="text-slate-400">Welcome to your DropSync centralized command center.</p>
+        <p className="text-slate-400">Welcome to your Vastra culture centralized command center.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
@@ -188,7 +200,7 @@ export default function DashboardPage() {
                        {order.user?.name || "Customer"} placed an order
                     </p>
                     <p className="text-xs text-slate-400 mt-1 line-clamp-1">
-                       Status: <span className="font-medium text-slate-300">{order.status}</span> • {order.orderItems?.length} items • <span className="text-green-400">${order.totalPrice.toFixed(2)}</span>
+                       Status: <span className="font-medium text-slate-300">{order.status}</span> • {order.orderItems?.length} items • <span className="text-green-400">₹{order.totalPrice.toFixed(2)}</span>
                     </p>
                     <p className="text-[10px] text-slate-500 mt-2 uppercase tracking-wide">
                        {new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString()}
@@ -200,6 +212,113 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Supplier Product Section */}
+      {typeof window !== 'undefined' && localStorage.getItem('dropsync_user') && JSON.parse(localStorage.getItem('dropsync_user')).role === 'supplier' && (
+        <div className="mt-10">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+              <PackageOpen className="w-7 h-7 text-purple-500" /> My Products
+            </h2>
+            <button 
+              onClick={() => router.push("/supplier/products")}
+              className="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-all"
+            >
+              <Plus className="w-5 h-5" /> Add Product
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Pending Products */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass rounded-2xl border border-slate-700/50 p-6"
+            >
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-800">
+                <Clock className="w-5 h-5 text-yellow-500" />
+                <h3 className="text-lg font-bold text-white">Pending Approval</h3>
+                <span className="ml-auto bg-yellow-500/20 text-yellow-400 text-sm font-bold px-2 py-1 rounded-full">
+                  {(supplierProducts || []).filter(p => p.status === 'pending').length}
+                </span>
+              </div>
+              
+              {(supplierProducts || []).filter(p => p.status === 'pending').length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  <PackageOpen className="w-12 h-12 mx-auto opacity-30 mb-2" />
+                  <p>No pending products. Great job!</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {(supplierProducts || []).filter(p => p.status === 'pending').map(product => (
+                    <div key={product._id} className="bg-slate-800/40 border border-yellow-500/20 rounded-lg p-4 hover:border-yellow-500/40 transition-colors">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-white line-clamp-1">{product.title}</h4>
+                          <p className="text-xs text-slate-400 line-clamp-1">{product.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 text-xs text-slate-300 flex-wrap">
+                        <span className="bg-slate-700 px-2 py-1 rounded">{product.category}</span>
+                        <span className="bg-slate-700 px-2 py-1 rounded">₹{product.price}</span>
+                        <span className="bg-slate-700 px-2 py-1 rounded">{product.stock} in stock</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Approved Products */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="glass rounded-2xl border border-slate-700/50 p-6"
+            >
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-800">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <h3 className="text-lg font-bold text-white">Active Products</h3>
+                <span className="ml-auto bg-green-500/20 text-green-400 text-sm font-bold px-2 py-1 rounded-full">
+                  {(supplierProducts || []).filter(p => p.status === 'approved' || p.status === 'active').length}
+                </span>
+              </div>
+              
+              {(supplierProducts || []).filter(p => p.status === 'approved' || p.status === 'active').length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  <CheckCircle className="w-12 h-12 mx-auto opacity-30 mb-2" />
+                  <p>No approved products yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {(supplierProducts || []).filter(p => p.status === 'approved' || p.status === 'active').map(product => (
+                    <div key={product._id} className="bg-slate-800/40 border border-green-500/20 rounded-lg p-4 hover:border-green-500/40 transition-colors">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-white line-clamp-1">{product.title}</h4>
+                          <p className="text-xs text-slate-400 line-clamp-1">{product.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 text-xs text-slate-300 flex-wrap">
+                        <span className="bg-slate-700 px-2 py-1 rounded">{product.category}</span>
+                        <span className="bg-green-500/10 text-green-400 px-2 py-1 rounded font-semibold">₹{product.price}</span>
+                        <span className="bg-slate-700 px-2 py-1 rounded">{product.stock} in stock</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </div>
+
+          <div className="mt-6 p-4 bg-slate-800/40 border border-blue-500/20 rounded-xl">
+            <p className="text-sm text-slate-300 flex items-center gap-2">
+              <Info className="w-4 h-4 text-blue-500" />
+              <span>Products submitted for approval will appear here. Admin approval is required before they go live in the marketplace.</span>
+            </p>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

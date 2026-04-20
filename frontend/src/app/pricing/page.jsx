@@ -4,8 +4,8 @@ import { Check } from "lucide-react";
 export default function PricingPage() {
   const plans = [
     { name: "Starter", price: "Free", desc: "Perfect for new customers exploring the marketplace.", list: ["Buy products", "Track orders", "Instant Support", "Standard Delivery"] },
-    { name: "Pro Dropshipper", price: "$29", desc: "For sellers ready to scale their business.", list: ["Add up to 500 products", "Auto-forward orders", "Access premium suppliers", "Analytics Dashboard"], popular: true },
-    { name: "Enterprise Supplier", price: "$99", desc: "For bulk suppliers and large inventory holders.", list: ["Unlimited products", "Priority order routing", "API access for inventory sync", "Dedicated account manager"] }
+    { name: "Pro Dropshipper", price: "₹2499", desc: "For sellers ready to scale their business.", list: ["Add up to 500 products", "Auto-forward orders", "Access premium suppliers", "Analytics Dashboard"], popular: true },
+    { name: "Enterprise Supplier", price: "₹8499", desc: "For bulk suppliers and large inventory holders.", list: ["Unlimited products", "Priority order routing", "API access for inventory sync", "Dedicated account manager"] }
   ];
 
   return (

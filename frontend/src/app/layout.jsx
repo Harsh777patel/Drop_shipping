@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/footer";
-import NavbarWrapper from "@/components/NavbarWrapper";
+import LayoutWrapper from "@/components/LayoutWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "DropSync - Smart Dropshipping Ecosystem",
+  title: "Vastra culture - Smart Dropshipping Ecosystem",
   description: "Next-generation dropshipping platform for customers, sellers, and suppliers. Featuring automated inventory, order forwarding, and ultra-fast local deliveries.",
 };
 
@@ -22,11 +22,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col font-[Inter]`}>
-        <NavbarWrapper />
-        <main className="flex-grow flex flex-col items-center justify-center relative w-full overflow-hidden">
+        <LayoutWrapper>
           {children}
-        </main>
-        <Footer />
+        </LayoutWrapper>
       </body>
     </html>
   );

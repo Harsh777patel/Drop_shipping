@@ -62,8 +62,14 @@ router.put("/:id", authMiddleware, authorizeRoles("admin", "seller", "supplier")
             return res.status(404).json({ message: "Product not found" });
         }
 
-        // Must be the owner or admin to update
-        if (req.user.role !== "admin" && product.supplier.toString() !== req.user.id) {
+        // Admin can update any product
+        if (req.user.role === "admin") {
+            const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+            return res.status(200).json({ message: "Product updated successfully", product: updatedProduct });
+        }
+
+        // Non-admin users can only update their own products
+        if (product.supplier.toString() !== req.user.id.toString()) {
             return res.status(403).json({ message: "Not authorized to update this product" });
         }
 
@@ -82,7 +88,14 @@ router.delete("/:id", authMiddleware, authorizeRoles("admin", "seller", "supplie
             return res.status(404).json({ message: "Product not found" });
         }
 
-        if (req.user.role !== "admin" && product.supplier.toString() !== req.user.id) {
+        // Admin can delete any product
+        if (req.user.role === "admin") {
+            await Product.findByIdAndDelete(req.params.id);
+            return res.status(200).json({ message: "Product deleted successfully" });
+        }
+
+        // Non-admin users can only delete their own products
+        if (product.supplier.toString() !== req.user.id.toString()) {
             return res.status(403).json({ message: "Not authorized to delete this product" });
         }
 

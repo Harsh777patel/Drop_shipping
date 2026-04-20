@@ -91,9 +91,9 @@ router.post("/forgot-password", async (req, res) => {
         });
 
         const mailOptions = {
-            from: process.env.EMAIL_USER || "support@dropsync.com",
+            from: process.env.EMAIL_USER || "support@vastraculture.com",
             to: email,
-            subject: "DropSync - Your Password Reset Code",
+            subject: "Vastra culture - Your Password Reset Code",
             html: `<h3>Your securely generated Password Reset OTP is: <b>${otp}</b></h3><p>It remains valid for 10 minutes. Do not share it.</p>`
         };
 

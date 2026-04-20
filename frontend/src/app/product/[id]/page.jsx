@@ -128,8 +128,8 @@ export default function ProductDetailPage({ params }) {
               
               <div className="mt-auto">
                  <div className="flex items-baseline gap-3 mb-6">
-                    <span className="text-5xl font-black text-white">${product.price.toFixed(2)}</span>
-                    <span className="text-xl text-slate-500 line-through">${(product.price * 1.3).toFixed(2)}</span>
+                    <span className="text-5xl font-black text-white">₹{product.price.toFixed(2)}</span>
+                    <span className="text-xl text-slate-500 line-through">₹{(product.price * 1.3).toFixed(2)}</span>
                  </div>
                  
                  <div className="flex items-center gap-4 mb-8">
@@ -185,7 +185,7 @@ export default function ProductDetailPage({ params }) {
                  </div>
                  <div className="p-4 flex flex-col flex-1 bg-slate-900/60">
                    <p className="text-white font-bold text-sm line-clamp-1 mb-1">{rec.title}</p>
-                   <p className="text-green-400 font-black mt-auto">${rec.price.toFixed(2)}</p>
+                   <p className="text-green-400 font-black mt-auto">₹{rec.price.toFixed(2)}</p>
                  </div>
                </div>
              ))}

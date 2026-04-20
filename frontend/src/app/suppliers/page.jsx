@@ -31,7 +31,7 @@ export default function SuppliersDirectory() {
       <div className="text-center mb-16 max-w-3xl mx-auto">
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Our Verified <span className="text-gradient">Suppliers</span></h1>
         <p className="text-lg text-slate-400">
-          Source from the highest-rated inventory holders in the DropSync network. We guarantee quality and lightning-fast fulfillment.
+          Source from the highest-rated inventory holders in the Vastra culture network. We guarantee quality and lightning-fast fulfillment.
         </p>
       </div>
 

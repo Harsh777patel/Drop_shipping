@@ -35,8 +35,17 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem("dropsync_token");
+      if (!token) {
+        toast.error("No authentication token found. Please login again.");
+        setLoading(false);
+        return;
+      }
+
       const res = await axios.get("http://localhost:5000/api/products/dashboard", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
       });
       
       let data = res.data;
@@ -44,9 +53,10 @@ export default function ProductsPage() {
         data = data.filter(p => p.supplier === filterSupplier || p.supplier?._id === filterSupplier);
       }
       setProducts(data);
+      setLoading(false);
     } catch (error) {
-      toast.error("Failed to load products");
-    } finally {
+      console.error("Product fetch error:", error.response?.data || error.message);
+      toast.error(error.response?.data?.message || "Failed to load products");
       setLoading(false);
     }
   };
@@ -141,8 +151,8 @@ export default function ProductsPage() {
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-slate-300 mb-2">Product Title <span className="text-red-500">*</span></label>
                   <div className="relative">
-                    <div className="absolute inset-y-1/2 left-0 pl-1 flex items-center pointer-events-none text-slate-500"><Tag className="w-5 h-5" /></div>
-                    <Field name="title" type="text" className="input-base pl-11" placeholder="  e.g. Premium Wireless Headphones" />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500"><Tag className="w-5 h-5" /></div>
+                    <Field name="title" type="text" className="input-base pl-10" placeholder="e.g. Premium Wireless Headphones" />
                   </div>
                   <ErrorMessage name="title" component="p" className="text-error text-xs mt-1" />
                 </div>
@@ -245,7 +255,7 @@ export default function ProductsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4"><span className="px-2 py-1 bg-slate-800 rounded text-xs text-slate-300">{product.category}</span></td>
-                    <td className="px-6 py-4 font-medium text-green-400">${product.price.toFixed(2)}</td>
+                    <td className="px-6 py-4 font-medium text-green-400">₹{product.price.toFixed(2)}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${product.stock > 10 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
                         {product.stock} in stock

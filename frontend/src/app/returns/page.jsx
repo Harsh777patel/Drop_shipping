@@ -11,7 +11,7 @@ export default function ReturnsPolicy() {
           <p>If you're unhappy with your item, you can initiate a return directly from the Customer Dashboard via the unified Return system.</p>
           <p>Items can only be rejected/refunded if they meet our Return criteria: within 7 days of the "Delivered" timestamp.</p>
           <h2 className="text-2xl text-white font-bold mt-8">Supplier Returns</h2>
-          <p>DropSync automatically refunds your original payment option (driven by Razorpay refunds setup). Items marked as returned will deduct corresponding funds from the Supplier dashboard during the periodic payout phase.</p>
+          <p>Vastra culture automatically refunds your original payment option (driven by Razorpay refunds setup). Items marked as returned will deduct corresponding funds from the Supplier dashboard during the periodic payout phase.</p>
         </div>
       }
     />

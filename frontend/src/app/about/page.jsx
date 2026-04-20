@@ -7,7 +7,7 @@ export default function AboutPage() {
       <div className="absolute top-[30%] left-[20%] w-[30%] h-[30%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none -z-10" />
       
       <div className="max-w-4xl mx-auto text-center mb-16">
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">About <span className="text-gradient">DropSync</span></h1>
+        <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">About <span className="text-gradient">Vastra culture</span></h1>
         <p className="text-lg text-slate-400 leading-relaxed max-w-2xl mx-auto">
           We are the ultimate dropshipping ecosystem for customers, sellers, and suppliers. Our mission is to democratize ecommerce by removing the barriers of inventory and logistics.
         </p>

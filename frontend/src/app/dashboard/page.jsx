@@ -645,7 +645,7 @@ export default function CustomerDashboard() {
                         <p className="text-sm text-slate-400 mb-1">
                           Total:{" "}
                           <span className="text-green-400 font-medium">
-                            ${order.totalPrice.toFixed(2)}
+                            ₹{order.totalPrice.toFixed(2)}
                           </span>
                         </p>
                         <p className="text-xs text-slate-500">

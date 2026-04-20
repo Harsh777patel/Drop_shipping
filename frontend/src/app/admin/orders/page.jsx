@@ -93,7 +93,7 @@ export default function OrdersPage() {
                 <tr key={order._id} className="hover:bg-slate-800/30 transition-colors">
                   <td className="px-6 py-4 font-medium text-slate-300">#{order._id.substring(0, 8)}</td>
                   <td className="px-6 py-4 text-white">{order.user?.name || "Guest"}</td>
-                  <td className="px-6 py-4 font-medium text-green-400">${order.totalPrice.toFixed(2)}</td>
+                  <td className="px-6 py-4 font-medium text-green-400">₹{order.totalPrice.toFixed(2)}</td>
                   <td className="px-6 py-4">
                     {order.isFastDelivery ? <span className="flex items-center gap-1 text-orange-400"><Truck className="w-4 h-4"/> Yes</span> : <span className="text-slate-500">Standard</span>}
                   </td>
