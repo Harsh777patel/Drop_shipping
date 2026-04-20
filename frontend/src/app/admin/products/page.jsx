@@ -186,9 +186,7 @@ export default function ProductsPage() {
                   <Field as="select" name="category" className="input-base bg-slate-800">
                     <option value="">Select a category</option>
                     <option value="Electronics">Electronics</option>
-                    <option value="Fashion">Fashion</option>
                     <option value="Home & Garden">Home & Garden</option>
-                    <option value="Beauty & Health">Beauty & Health</option>
                   </Field>
                   <ErrorMessage name="category" component="p" className="text-error text-xs mt-1" />
                 </div>

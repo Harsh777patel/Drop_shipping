@@ -2,13 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, Box, ShoppingCart, Star, PackageOpen } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Search, Filter, Box, ShoppingCart, Star, PackageOpen, Heart } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
+import { useWishlist } from "@/context/WishlistContext";
 
 export default function ProductsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,17 +27,23 @@ export default function ProductsPage() {
     const fetchProducts = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/products");
-        setProducts(res.data);
-        setFilteredProducts(res.data);
+        
+        // Filter out products with "Fashion" and "Beauty & Health" categories
+        const filteredByCategory = res.data.filter(p => 
+          p.category !== "Fashion" && p.category !== "Beauty & Health"
+        );
+        
+        setProducts(filteredByCategory);
+        setFilteredProducts(filteredByCategory);
 
-        // Keep default categories and add any additional ones from DB
+        // Keep default categories and add any additional ones from DB (excluding Fashion and Beauty & Health)
         const defaultCategories = ["All", "Men", "Women", "Accessories"];
-        const uniqueCats = [...defaultCategories, ...new Set(res.data.map(p => p.category).filter(Boolean).filter(cat => !defaultCategories.includes(cat)))];
+        const uniqueCats = [...defaultCategories, ...new Set(filteredByCategory.map(p => p.category).filter(Boolean).filter(cat => !defaultCategories.includes(cat) && cat !== "Fashion" && cat !== "Beauty & Health"))];
         setCategories(uniqueCats);
 
         // Dynamically adjust price slider to comfortably fit the highest priced item
-        if (res.data.length > 0) {
-          const maxItemPrice = Math.max(...res.data.map(p => p.price));
+        if (filteredByCategory.length > 0) {
+          const maxItemPrice = Math.max(...filteredByCategory.map(p => p.price));
           const calculatedMax = Math.ceil(maxItemPrice * 1.1); // Add 10% buffer
           setMaxPriceDefault(calculatedMax);
           setPriceRange(calculatedMax);
@@ -47,6 +56,22 @@ export default function ProductsPage() {
     };
     fetchProducts();
   }, []);
+
+  // Read query parameters from URL
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    const searchParam = searchParams.get("search");
+
+    if (categoryParam) {
+      // Capitalize the category parameter to match the state
+      const capitalizedCategory = categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1).toLowerCase();
+      setSelectedCategory(capitalizedCategory);
+    }
+
+    if (searchParam) {
+      setSearchTerm(searchParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     // Apply Filters
@@ -175,6 +200,29 @@ export default function ProductsPage() {
                       <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 group-hover:scale-110 transition-transform duration-700"></div>
                     )}
                     {!product.imageUrl && <ShoppingCart className="w-16 h-16 text-slate-700 z-10" />}
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isInWishlist(product._id)) {
+                          removeFromWishlist(product._id);
+                          toast.success("Removed from wishlist");
+                        } else {
+                          addToWishlist({
+                            _id: product._id,
+                            id: product._id,
+                            title: product.title,
+                            price: product.price,
+                            imageUrl: product.imageUrl,
+                            category: product.category,
+                          });
+                          toast.success("Added to wishlist");
+                        }
+                      }}
+                      className="absolute top-3 left-3 w-10 h-10 rounded-xl bg-slate-900/60 hover:bg-pink-500/20 backdrop-blur-md border border-slate-700/50 hover:border-pink-500/40 flex items-center justify-center z-20 transition-all"
+                    >
+                      <Heart className={`w-5 h-5 ${isInWishlist(product._id) ? 'fill-pink-500 text-pink-500' : 'text-slate-300 hover:text-pink-400'}`} />
+                    </button>
 
                     <div className="absolute top-3 right-3 bg-slate-900/60 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-white border border-slate-700/50 flex items-center gap-1 z-20">
                       <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" /> 4.8

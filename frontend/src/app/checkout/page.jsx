@@ -1,48 +1,47 @@
 "use client";
 
-import React, { useEffect, useState, use, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle, ShieldCheck, Truck, DollarSign, Home, Box, MapPin, ArrowLeft } from "lucide-react";
+import React, { useEffect, useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
+import { CheckCircle, ShieldCheck, Truck, DollarSign, MapPin, ArrowLeft, Trash2 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import Script from "next/script";
+import { useCart } from "@/context/CartContext";
 
-function CheckoutContent({ params }) {
+function CheckoutContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const qty = parseInt(searchParams.get("qty") || "1", 10);
-  
-  const unwrappedParams = use(params);
-  const { id } = unwrappedParams;
-
-  const [product, setProduct] = useState(null);
+  const { clearCart } = useCart();
+  const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const [address, setAddress] = useState({
     street: "",
     city: "",
     postalCode: "",
+    state: "",
     country: "India"
   });
   
   const [paymentMethod, setPaymentMethod] = useState("COD");
-  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/products");
-        const found = res.data.find(p => p._id === id);
-        if (found) setProduct(found);
-        else toast.error("Product not found");
-      } catch (err) {
-        toast.error("Failed to load product details");
-      } finally {
-        setLoading(false);
+    try {
+      const savedCart = localStorage.getItem("dropsync_checkout_cart");
+      if (savedCart) {
+        const items = JSON.parse(savedCart);
+        setCartItems(items);
+      } else {
+        toast.error("No items in cart");
+        setTimeout(() => router.push("/cart"), 1500);
       }
-    };
-    fetchProduct();
-  }, [id]);
+    } catch (err) {
+      toast.error("Failed to load cart");
+      router.push("/cart");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const placeOrder = async () => {
     if (!address.street || !address.city || !address.postalCode) {
@@ -58,25 +57,30 @@ function CheckoutContent({ params }) {
     }
 
     setIsProcessing(true);
-    const totalPrice = product.price * qty;
+
+    const orderItems = cartItems.map(item => ({
+      product: item._id,
+      name: item.title,
+      qty: item.qty,
+      price: item.price,
+      supplier: item.supplier || "000000000000000000000000"
+    }));
+
+    const itemsPrice = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const totalPrice = itemsPrice;
 
     const orderData = {
-      orderItems: [{ 
-        product: product._id, 
-        name: product.title, 
-        qty: qty, 
-        price: product.price, 
-        supplier: product.supplier?._id || product.supplier || product.seller?._id || product.seller || "000000000000000000000000"
-      }],
-      shippingAddress: { 
-        address: address.street, 
-        city: address.city, 
-        postalCode: address.postalCode, 
-        country: address.country 
+      orderItems,
+      shippingAddress: {
+        address: address.street,
+        city: address.city,
+        state: address.state,
+        postalCode: address.postalCode,
+        country: address.country
       },
       paymentMethod,
-      itemsPrice: totalPrice,
-      totalPrice: totalPrice,
+      itemsPrice,
+      totalPrice,
     };
 
     try {
@@ -84,6 +88,10 @@ function CheckoutContent({ params }) {
         await axios.post("http://localhost:5000/api/orders", orderData, {
           headers: { Authorization: `Bearer ${token}` }
         });
+        
+        clearCart();
+        localStorage.removeItem("dropsync_checkout_cart");
+        
         toast.success("Order Placed Successfully via COD!");
         setTimeout(() => window.location.href = "/dashboard", 1500);
       } 
@@ -99,13 +107,21 @@ function CheckoutContent({ params }) {
           amount: orderRes.data.amount,
           currency: "INR",
           name: "Vastra culture Marketplace",
-          description: `Secure purchase of ${product.title}`,
+          description: `Secure purchase of ${cartItems.length} items`,
           order_id: orderRes.data.id, 
           handler: async function (response) {
               toast.loading("Verifying Payment...", { id: "payment" });
               try {
-                await axios.post("http://localhost:5000/api/payments/verify", response, { headers: { Authorization: `Bearer ${token}` }});
-                await axios.post("http://localhost:5000/api/orders", orderData, { headers: { Authorization: `Bearer ${token}` }});
+                await axios.post("http://localhost:5000/api/payments/verify", response, { 
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                await axios.post("http://localhost:5000/api/orders", orderData, { 
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                clearCart();
+                localStorage.removeItem("dropsync_checkout_cart");
+                
                 toast.success("Payment Successful! Order Confirmed.", { id: "payment" });
                 setTimeout(() => window.location.href = "/dashboard", 1500);
               } catch (err) {
@@ -133,7 +149,9 @@ function CheckoutContent({ params }) {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-blue-500 border-t-transparent flex rounded-full animate-spin"></div></div>;
 
-  if (!product) return null;
+  if (cartItems.length === 0) return null;
+
+  const itemsTotal = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
   return (
     <div className="min-h-screen w-full relative pt-24 px-4 pb-20 max-w-5xl mx-auto flex flex-col">
@@ -182,19 +200,29 @@ function CheckoutContent({ params }) {
                     value={address.city} 
                     onChange={(e) => setAddress({...address, city: e.target.value})}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500" 
-                    placeholder="Metropolis" 
+                    placeholder="Mumbai" 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Postal Code</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">State</label>
                   <input 
                     type="text" 
-                    value={address.postalCode} 
-                    onChange={(e) => setAddress({...address, postalCode: e.target.value})}
+                    value={address.state} 
+                    onChange={(e) => setAddress({...address, state: e.target.value})}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500" 
-                    placeholder="100001" 
+                    placeholder="Maharashtra" 
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Postal Code</label>
+                <input 
+                  type="text" 
+                  value={address.postalCode} 
+                  onChange={(e) => setAddress({...address, postalCode: e.target.value})}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500" 
+                  placeholder="400001" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Country</label>
@@ -237,23 +265,29 @@ function CheckoutContent({ params }) {
           <div className="glass rounded-2xl border border-slate-700/50 p-6 shadow-xl sticky top-24">
             <h2 className="text-lg font-bold text-white mb-4 border-b border-slate-800 pb-3">Order Summary</h2>
             
-            <div className="flex gap-4 items-center mb-6">
-              <div className="w-16 h-16 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0">
-                {product.imageUrl ? <img src={product.imageUrl} className="w-full h-full object-cover" /> : <Box className="w-8 h-8 m-4 text-slate-500" />}
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-white line-clamp-1">{product.title}</p>
-                <p className="text-sm text-slate-400">Qty: {qty}</p>
-                <p className="font-bold text-green-400">₹{product.price.toFixed(2)}</p>
-              </div>
+            <div className="space-y-3 max-h-64 overflow-y-auto mb-6 pb-6 border-b border-slate-800">
+              {cartItems.map((item) => (
+                <div key={item._id} className="flex gap-3 items-center bg-slate-900/40 p-3 rounded-lg">
+                  <div className="w-12 h-12 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0">
+                    {item.imageUrl ? <img src={item.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-700"></div>}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white text-sm line-clamp-1">{item.title}</p>
+                    <p className="text-xs text-slate-400">Qty: {item.qty}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-bold text-green-400 text-sm">₹{(item.price * item.qty).toFixed(2)}</p>
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div className="space-y-3 mb-6 pb-6 border-b border-slate-800 text-sm">
-              <div className="flex justify-between text-slate-300"><span>Subtotal</span><span>₹{(product.price * qty).toFixed(2)}</span></div>
+              <div className="flex justify-between text-slate-300"><span>Subtotal</span><span>₹{itemsTotal.toFixed(2)}</span></div>
               <div className="flex justify-between text-slate-300"><span>Shipping</span><span className="text-green-400">Free</span></div>
               <div className="flex justify-between font-bold text-lg text-white pt-2 border-t border-slate-800 mt-2">
                 <span>Total</span>
-                <span className="text-green-400">₹{(product.price * qty).toFixed(2)}</span>
+                <span className="text-green-400">₹{itemsTotal.toFixed(2)}</span>
               </div>
             </div>
 
@@ -262,7 +296,7 @@ function CheckoutContent({ params }) {
               disabled={isProcessing}
               className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {isProcessing ? "Processing..." : `Complete Order (₹${(product.price * qty).toFixed(2)})`}
+              {isProcessing ? "Processing..." : `Complete Order (₹${itemsTotal.toFixed(2)})`}
             </button>
           </div>
         </div>
@@ -272,10 +306,10 @@ function CheckoutContent({ params }) {
   );
 }
 
-export default function CheckoutPage({ params }) {
+export default function CheckoutPage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-blue-500 border-t-transparent flex rounded-full animate-spin"></div></div>}>
-      <CheckoutContent params={params} />
+      <CheckoutContent />
     </Suspense>
   );
 }

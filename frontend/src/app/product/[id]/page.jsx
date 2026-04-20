@@ -2,14 +2,18 @@
 
 import React, { useEffect, useState, use } from "react"; // Added "use" from react
 import { motion } from "framer-motion";
-import { ArrowLeft, ShoppingCart, ShieldCheck, Star, Box, Share2, CreditCard } from "lucide-react";
+import { ArrowLeft, ShoppingCart, ShieldCheck, Star, Box, Share2, CreditCard, Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import Script from "next/script";
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 export default function ProductDetailPage({ params }) {
   const router = useRouter();
+  const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   
   // Unwrap params using React.use() to fix strict mode warning in App Router
   const unwrappedParams = use(params);
@@ -44,23 +48,18 @@ export default function ProductDetailPage({ params }) {
   };
 
   const handleAddToCart = () => {
-    const existing = JSON.parse(localStorage.getItem("dropsync_cart") || "[]");
-    const idx = existing.findIndex(item => item._id === product._id);
-    if (idx > -1) {
-      existing[idx].qty = Math.min(product.stock, existing[idx].qty + qty);
-    } else {
-      existing.push({
-        _id: product._id,
-        title: product.title,
-        price: product.price,
-        imageUrl: product.imageUrl || null,
-        stock: product.stock,
-        category: product.category,
-        supplier: product.supplier?._id || product.supplier || "000000000000000000000000",
-        qty: qty,
-      });
-    }
-    localStorage.setItem("dropsync_cart", JSON.stringify(existing));
+    addToCart({
+      _id: product._id,
+      id: product._id,
+      title: product.title,
+      price: product.price,
+      imageUrl: product.imageUrl || null,
+      stock: product.stock,
+      category: product.category,
+      supplier: product.supplier?._id || product.supplier || "000000000000000000000000",
+      quantity: qty,
+      qty: qty,
+    });
     toast.success(`${product.title} added to cart!`);
   };
 
@@ -101,6 +100,31 @@ export default function ProductDetailPage({ params }) {
                  <ShoppingCart className="w-24 h-24 text-slate-600" />
                )}
                <div className="absolute top-4 right-4 flex flex-col gap-2">
+                 <button 
+                   onClick={() => {
+                     if (isInWishlist(product._id)) {
+                       removeFromWishlist(product._id);
+                       toast.success("Removed from wishlist");
+                     } else {
+                       addToWishlist({
+                         _id: product._id,
+                         id: product._id,
+                         title: product.title,
+                         price: product.price,
+                         imageUrl: product.imageUrl,
+                         category: product.category,
+                       });
+                       toast.success("Added to wishlist");
+                     }
+                   }}
+                   className={`w-10 h-10 rounded-xl backdrop-blur-md flex items-center justify-center transition-all border border-slate-700/50 ${
+                     isInWishlist(product._id)
+                       ? "bg-pink-500/20 text-pink-400 border-pink-500/40"
+                       : "bg-slate-900/60 text-slate-300 hover:text-pink-400 hover:bg-slate-800"
+                   }`}
+                 >
+                    <Heart className={`w-4 h-4 ${isInWishlist(product._id) ? "fill-pink-400" : ""}`} />
+                 </button>
                  <button className="w-10 h-10 rounded-xl bg-slate-900/60 backdrop-blur-md flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border border-slate-700/50">
                     <Share2 className="w-4 h-4" />
                  </button>

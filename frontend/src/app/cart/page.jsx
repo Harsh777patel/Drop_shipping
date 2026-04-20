@@ -321,15 +321,19 @@ export default function CartPage() {
   };
 
   const handleCheckout = () => {
-    if (cart.length === 0) { toast.error("Your cart is empty"); return; }
+    if (cart.length === 0) { 
+      toast.error("Your cart is empty"); 
+      return; 
+    }
     const token = localStorage.getItem("dropsync_token");
     if (!token) {
       toast.error("Please login to checkout");
       setTimeout(() => router.push("/login"), 1500);
       return;
     }
-    // Simple checkout: go to checkout of first item (or cart checkout)
-    router.push(`/checkout/${cart[0]._id}?qty=${cart[0].qty}&from=cart`);
+    // Store cart data for checkout and redirect
+    localStorage.setItem("dropsync_checkout_cart", JSON.stringify(cart));
+    router.push("/checkout");
   };
 
   const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
@@ -371,7 +375,7 @@ export default function CartPage() {
             </div>
             My Cart
           </h1>
-          <p className="text-slate-400 text-sm mt-1">{cart.length} item{cart.length !== 1 ? "s" : ""} in your cart</p>
+          <p className="text-slate-400 text-sm mx-6 mt-4">{cart.length} item{cart.length !== 1 ? "s" : ""} in your cart</p>
         </div>
         <button
           onClick={() => router.push("/")}

@@ -4,15 +4,18 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ShoppingCart, User, Package, Zap, Search, ChevronRight, Loader } from "lucide-react";
+import { Menu, X, ShoppingCart, User, Package, Zap, Search, ChevronRight, Loader, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const { getTotalItems } = useCart();
+  const { wishlist } = useWishlist();
   const cartCount = mounted ? getTotalItems() : 0;
+  const wishlistCount = mounted ? wishlist.length : 0;
   const [isOpen, setIsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -363,6 +366,16 @@ export default function Navbar() {
 
         {/* Desktop Auth/Actions */}
         <div className="hidden md:flex items-center gap-4">
+          {/* Wishlist Button */}
+          <Link href="/wishlist" className="relative w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-pink-400 transition-all">
+            <Heart className="w-5 h-5" />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-pink-600 text-white text-xs font-black rounded-full flex items-center justify-center shadow-lg shadow-pink-500/40">
+                {wishlistCount > 9 ? "9+" : wishlistCount}
+              </span>
+            )}
+          </Link>
+
           {/* Cart Button */}
           <Link href="/cart" className="relative w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-all">
             <ShoppingCart className="w-5 h-5" />
@@ -415,7 +428,50 @@ export default function Navbar() {
               ))}
               
               <div className="h-px bg-white/10 my-2" />
+
+              {/* Category Buttons for Mobile */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3">Categories</p>
+                <Link
+                  href="/products?category=men"
+                  onClick={() => setIsOpen(false)}
+                  className="block text-base font-medium p-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+                >
+                  Men
+                </Link>
+                <Link
+                  href="/products?category=women"
+                  onClick={() => setIsOpen(false)}
+                  className="block text-base font-medium p-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+                >
+                  Women
+                </Link>
+                <Link
+                  href="/products?category=accessories"
+                  onClick={() => setIsOpen(false)}
+                  className="block text-base font-medium p-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+                >
+                  Accessories
+                </Link>
+              </div>
               
+              <div className="h-px bg-white/10 my-2" />
+              
+              <Link
+                href="/wishlist"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center justify-between p-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+              >
+                <span className="flex items-center gap-2 font-medium">
+                  <Heart className="w-4 h-4" /> Wishlist
+                </span>
+                {wishlistCount > 0 && (
+                  <span className="w-6 h-6 bg-pink-600 text-white text-xs font-black rounded-full flex items-center justify-center">
+                    {wishlistCount > 9 ? "9+" : wishlistCount}
+                  </span>
+                )}
+              </Link>
+
               <Link
                 href="/cart"
                 onClick={() => setIsOpen(false)}
